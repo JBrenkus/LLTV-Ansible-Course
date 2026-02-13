@@ -1,0 +1,12 @@
+---
+- name: making a file
+  hosts: all
+  remote_user: jay
+
+  tasks:
+
+  - name: make a file
+    ansible.builtin.file:
+      path: /etc/foo.conf
+      state: touch
+      mode: '0777'

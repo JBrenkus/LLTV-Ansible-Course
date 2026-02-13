@@ -1,38 +1,29 @@
 ---
 - hosts: all
   become: true
+
   tasks:
 
-  - name: update repository index
-    ansible.builtin.apt:
-      update_cache: yes
-    when: ansible_distribution == "Ubuntu"
+  - name: create a test file on both servers
+    ansible.builtin.file:
+      path: /etc/filetest.txt
+      state: touch
+      mode: '1777'
 
   - name: install apache2 package
     ansible.builtin.apt:
-      name: apache2
+      name:
+        - apache2
+        - libapache2-mod-php
       state: latest
-    when: ansible_distribution == "Ubuntu"
-
-  - name: install support for php
-    ansible.builtin.apt:
-      name: libapache2-mod-php
-      state: latest
-    when: ansible_distribution == "Ubuntu"
-
-  - name: update repository index
-    ansible.builtin.dnf:
       update_cache: yes
-    when: ansible_distribution == "Fedora"
+    when: ansible_distribution == "Ubuntu"
 
   - name: install httpd package
-    ansible.builtin.dnf:
-      name: httpd
+    ansible.builtin.dnf5:
+      name:
+        - httpd
+        - php
       state: latest
-    when: ansible_distribution == "Fedora"
-
-  - name: add php support for apache
-    ansible.builtin.dnf:
-      name: php
-      state: latest
+      update_cache: yes
     when: ansible_distribution == "Fedora"
