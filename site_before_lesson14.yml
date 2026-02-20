@@ -1,0 +1,112 @@
+---
+- hosts: all
+  become: true
+  pre_tasks:
+
+  - name: install updates for fedora
+    tags: always
+    ansible.builtin.dnf:
+      state: present
+      update_only: yes
+      update_cache: yes
+      use_backend: dnf4
+    when: ansible_distribution == "Fedora"
+
+  - name: install updates for ubuntu
+    tags: always
+    ansible.builtin.apt:
+      upgrade: dist
+      update_cache: yes
+    when: ansible_distribution == "Ubuntu"
+
+  - name: create user
+    tags: always
+    ansible.builtin.user:
+      name: simon
+      groups: root
+
+  - name: add sudoers file for simon
+    tags: always
+    ansible.builtin.copy:
+      src: sudoer_simon
+      dest: /etc/sudoers.d/simon
+      owner: root
+      group: root
+      mode: 0440
+
+  - name: add ssh key for simon user
+    tags: always
+    ansible.builtin.authorized_key:
+      user: simon
+      key: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDKK4rLK9RhMjG7tPrKoWsuJtRkOws8HnCyiUcLwsxuVv2C7fAaRuPWCZPuq/xA3kfzmVYoUwLZU7HTqzppWaAiEUEM0iP/P/Nd9IoQlb+22ab01EWuee3egkMSN182dQpYw6EA6zdej4uakC+Lg2wMe9zbggqFtjL2BIEpZHt0SHNQDPoXuJVIF0oRGX0ZPXQMTwUTdTwt0t5jAN9Ggu4oMSKcjjIiIVrZWDPnT4e+al4wOGECiH/HO5RpSClVrT2C6PLg1h4545WWSL6t/FSLNYjWfme441pmT9QyLyg2UJ69Te4gIh5r3YZadWZMje3nx2Vn/ilqEphLZpBijv05oFbm4H3VksEgb4khwvtRkogDJX546hItBV5edx8NQX2ztEPNvxKFMoglrcq/g/2s2Drrgfqj3HE7L9ZUw8nO5XlyG/Sb4bV7eEedBscXFeT/SA1qPhktSME2jUlUdfqYrkmZjhlki1XWsLohNo1jpZlYVFxYdieCauXJjeOkk58= jay@ubu-ws"
+
+- hosts: web_servers
+  become: true
+  tasks:
+
+  - name: install apache on web servers (ubuntu)
+    tags: apache,ubuntu
+    ansible.builtin.apt:
+      name:
+        - apache2
+        - libapache2-mod-php
+    when: ansible_distribution == "Ubuntu"
+
+  - name: install apache on web servers (fedora)
+    tags: apache,fedora
+    ansible.builtin.dnf:
+      name: httpd
+      use_backend: dnf4
+    when: ansible_distribution == "Fedora"
+
+  - name: ensure apache is running (ubuntu)
+    tags: apache, ubuntu
+    ansible.builtin.service:
+      name: apache2
+      state: started
+    when: ansible_distribution == "Ubuntu"
+
+  - name: ensure apache is running (fedora)
+    tags: apache,fedora
+    ansible.builtin.service:
+      name: httpd
+      state: started
+    when: ansible_distribution == "Fedora"
+
+  - name: change email address for admin
+    tags: apache,fedora
+    ansible.builtin.lineinfile:
+      path: /etc/httpd/conf/httpd.conf
+      regexp: '^ServerAdmin'
+      line: ServerAdmin jacobbrenkus925@gmail.com
+    when: ansible_distribution == "Fedora"
+    register: httpd
+
+  - name: restart httpd (fedora)
+    tags: apache,fedora
+    ansible.builtin.service:
+      name: httpd
+      state: restarted
+    when: httpd.changed
+
+
+  - name: copy html file for site
+    tags: apache,ubuntu
+    ansible.builtin.copy:
+      src: default_site.html
+      dest: /var/www/html/index.html
+      owner: root
+      group: root
+      mode: 0644
+
+- hosts: db_servers
+  become: true
+  tasks:
+
+   - name: install mariadb
+     tags: db,fedora
+     ansible.builtin.dnf:
+       name: mariadb
+       state: latest
+       use_backend: dnf4
+     when: ansible_distribution == "Fedora"
