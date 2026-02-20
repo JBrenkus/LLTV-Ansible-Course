@@ -9,6 +9,7 @@
       state: present
       update_only: yes
       update_cache: yes
+      use_backend: dnf4
     when: ansible_distribution == "Fedora"
 
   - name: install updates for ubuntu
@@ -17,6 +18,27 @@
       upgrade: dist
       update_cache: yes
     when: ansible_distribution == "Ubuntu"
+
+  - name: create user
+    tags: always
+    ansible.builtin.user:
+      name: simon
+      groups: root
+
+  - name: add sudoers file for simon
+    tags: always
+    ansible.builtin.copy:
+      src: sudoer_simon
+      dest: /etc/sudoers.d/simon
+      owner: root
+      group: root
+      mode: 0440
+
+  - name: add ssh key for simon user
+    tags: always
+    ansible.builtin.authorized_key:
+      user: simon
+      key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBmjwcXYedjm+nsDJZq2TcWPwW2TG0kCZ+B9AGpMZqCF jay@ubu-ws"
 
 - hosts: web_servers
   become: true
@@ -34,6 +56,7 @@
     tags: apache,fedora
     ansible.builtin.dnf:
       name: httpd
+      use_backend: dnf4
     when: ansible_distribution == "Fedora"
 
   - name: ensure apache is running (ubuntu)
@@ -49,6 +72,23 @@
       name: httpd
       state: started
     when: ansible_distribution == "Fedora"
+
+  - name: change email address for admin
+    tags: apache,fedora
+    ansible.builtin.lineinfile:
+      path: /etc/httpd/conf/httpd.conf
+      regexp: '^ServerAdmin'
+      line: ServerAdmin jacobbrenkus925@gmail.com
+    when: ansible_distribution == "Fedora"
+    register: httpd
+
+  - name: restart httpd (fedora)
+    tags: apache,fedora
+    ansible.builtin.service:
+      name: httpd
+      state: restarted
+    when: httpd.changed
+
 
   - name: copy html file for site
     tags: apache,ubuntu
@@ -68,5 +108,5 @@
      ansible.builtin.dnf:
        name: mariadb
        state: latest
+       use_backend: dnf4
      when: ansible_distribution == "Fedora"
-
