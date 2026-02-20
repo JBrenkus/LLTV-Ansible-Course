@@ -38,7 +38,7 @@
     tags: always
     ansible.builtin.authorized_key:
       user: simon
-      key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBmjwcXYedjm+nsDJZq2TcWPwW2TG0kCZ+B9AGpMZqCF jay@ubu-ws"
+      key: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDKK4rLK9RhMjG7tPrKoWsuJtRkOws8HnCyiUcLwsxuVv2C7fAaRuPWCZPuq/xA3kfzmVYoUwLZU7HTqzppWaAiEUEM0iP/P/Nd9IoQlb+22ab01EWuee3egkMSN182dQpYw6EA6zdej4uakC+Lg2wMe9zbggqFtjL2BIEpZHt0SHNQDPoXuJVIF0oRGX0ZPXQMTwUTdTwt0t5jAN9Ggu4oMSKcjjIiIVrZWDPnT4e+al4wOGECiH/HO5RpSClVrT2C6PLg1h4545WWSL6t/FSLNYjWfme441pmT9QyLyg2UJ69Te4gIh5r3YZadWZMje3nx2Vn/ilqEphLZpBijv05oFbm4H3VksEgb4khwvtRkogDJX546hItBV5edx8NQX2ztEPNvxKFMoglrcq/g/2s2Drrgfqj3HE7L9ZUw8nO5XlyG/Sb4bV7eEedBscXFeT/SA1qPhktSME2jUlUdfqYrkmZjhlki1XWsLohNo1jpZlYVFxYdieCauXJjeOkk58= jay@ubu-ws"
 
 - hosts: web_servers
   become: true
